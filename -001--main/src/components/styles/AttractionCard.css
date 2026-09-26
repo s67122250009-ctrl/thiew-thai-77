@@ -1,0 +1,6 @@
+.attraction-card{overflow:hidden;background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 7px 24px #0f172a0d}
+.card-image-placeholder{height:190px;display:grid;place-items:center;background:#e5e7eb;color:#6b7280}
+.card-body{padding:18px}.card-meta{display:flex;justify-content:space-between;align-items:center;color:#64748b;font-size:14px}
+.favorite-button{width:36px;height:36px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#64748b;font-size:20px;cursor:pointer}
+.favorite-button.active{color:#dc2626;background:#fff1f2}.card-body h3{margin:12px 0 8px;font-size:20px}
+.card-body p{margin:0 0 15px;color:#64748b;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.card-link{color:#2563eb;font-weight:700}
