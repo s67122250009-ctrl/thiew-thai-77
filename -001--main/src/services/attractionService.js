@@ -1,155 +1,141 @@
-import sql from './db';
+import { db } from '../firebase';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
-// 1. ดึงรายการสถานที่ท่องเที่ยวทั้งหมด (ที่ HomePage.jsx เรียกใช้)
+// 1. ดึงสถานที่ท่องเที่ยวทั้งหมด
 export const getAttractions = async () => {
   try {
-    return await sql`SELECT * FROM attractions ORDER BY attraction_id`;
+    const querySnapshot = await getDocs(collection(db, 'attractions'));
+    const attractions = [];
+    querySnapshot.forEach((doc) => {
+      attractions.push({ id: doc.id, ...doc.data() });
+    });
+    return attractions;
   } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลสถานที่ท่องเที่ยว: - attractionService.js:8', error);
+    console.error('Error fetching attractions: - attractionService.js:14', error);
     return [];
   }
 };
 
-// 2. ดึงข้อมูลรวมทั้งหมด (จังหวัด, หมวดหมู่, สถานที่ท่องเที่ยว)
-export const getMasterData = async () => {
-  try {
-    const provinces = await sql`SELECT * FROM provinces ORDER BY province_id`;
-    const categories = await sql`SELECT * FROM categories ORDER BY category_id`;
-    const attractions = await sql`SELECT * FROM attractions ORDER BY attraction_id`;
-
-    return {
-      metadata: {
-        total_records: attractions.length,
-        provinces: provinces.length,
-        categories: categories.length,
-      },
-      provinces: provinces,
-      categories: categories,
-      data: attractions,
-    };
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลจาก Neon: - attractionService.js:31', error);
-    throw error;
-  }
-};
-
-// 3. ดึงสถานที่ท่องเที่ยวตาม ID
+// 2. ดึงรายละเอียดสถานที่ท่องเที่ยวตาม ID
 export const getAttractionById = async (id) => {
   try {
-    const result = await sql`SELECT * FROM attractions WHERE attraction_id = ${id}`;
-    return result[0] || null;
+    const docRef = doc(db, 'attractions', String(id));
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
   } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงรายละเอียดสถานที่: - attractionService.js:42', error);
+    console.error('Error fetching attraction by ID: - attractionService.js:29', error);
     return null;
   }
 };
 
-// 4. ดึงสถานที่ท่องเที่ยวแนะนำ (Featured)
-export const getFeaturedAttractions = async () => {
-  try {
-    return await sql`SELECT * FROM attractions WHERE is_featured = true ORDER BY attraction_id`;
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงสถานที่แนะนำ: - attractionService.js:52', error);
-    return [];
-  }
-};
-
-// 5. ดึงรายการจังหวัดทั้งหมด
-export const getProvinces = async () => {
-  try {
-    return await sql`SELECT * FROM provinces ORDER BY province_id`;
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงจังหวัดทั้งหมด: - attractionService.js:62', error);
-    return [];
-  }
-};
-
-// 6. ดึงข้อมูลจังหวัดตาม ID
-export const getProvince = async (provinceId) => {
-  try {
-    const result = await sql`SELECT * FROM provinces WHERE province_id = ${provinceId}`;
-    return result[0] || null;
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลจังหวัด: - attractionService.js:73', error);
-    return null;
-  }
-};
-
-export const getProvinceById = getProvince;
-
-// 7. ดึงรายการหมวดหมู่ทั้งหมด
-export const getCategories = async () => {
-  try {
-    return await sql`SELECT * FROM categories ORDER BY category_id`;
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงหมวดหมู่ทั้งหมด: - attractionService.js:85', error);
-    return [];
-  }
-};
-
-// 8. ดึงข้อมูลหมวดหมู่ตาม ID
-export const getCategory = async (categoryId) => {
-  try {
-    const result = await sql`SELECT * FROM categories WHERE category_id = ${categoryId}`;
-    return result[0] || null;
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่: - attractionService.js:96', error);
-    return null;
-  }
-};
-
-export const getCategoryById = getCategory;
-
-// 9. ดึงสถานที่ท่องเที่ยวตามจังหวัด
-export const getAttractionsByProvince = async (provinceId) => {
-  try {
-    return await sql`SELECT * FROM attractions WHERE province_id = ${provinceId} ORDER BY attraction_id`;
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลตามจังหวัด: - attractionService.js:108', error);
-    return [];
-  }
-};
-
-// 10. ดึงสถานที่ท่องเที่ยวตามหมวดหมู่
+// 3. ดึงสถานที่ท่องเที่ยวตามหมวดหมู่ (Category ID)
 export const getAttractionsByCategory = async (categoryId) => {
   try {
-    return await sql`SELECT * FROM attractions WHERE category_id = ${categoryId} ORDER BY attraction_id`;
+    const all = await getAttractions();
+    if (!categoryId) return all;
+    return all.filter(item => 
+      String(item.category_id) === String(categoryId) || 
+      String(item.categoryId) === String(categoryId)
+    );
   } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลตามหมวดหมู่: - attractionService.js:118', error);
+    console.error('Error fetching attractions by category: - attractionService.js:44', error);
     return [];
   }
 };
 
-// 11. ค้นหาสถานที่ท่องเที่ยว
+// 4. ดึงสถานที่ท่องเที่ยวตามจังหวัด (Province ID)
+export const getAttractionsByProvince = async (provinceId) => {
+  try {
+    const all = await getAttractions();
+    if (!provinceId) return all;
+    return all.filter(item => 
+      String(item.province_id) === String(provinceId) || 
+      String(item.provinceId) === String(provinceId)
+    );
+  } catch (error) {
+    console.error('Error fetching attractions by province: - attractionService.js:59', error);
+    return [];
+  }
+};
+
+// 5. ค้นหาสถานที่ท่องเที่ยวตามคำค้น
 export const searchAttractions = async (query) => {
   try {
-    const searchTerm = `%${query}%`;
-    return await sql`
-      SELECT * FROM attractions 
-      WHERE name_th ILIKE ${searchTerm} 
-         OR name_en ILIKE ${searchTerm} 
-         OR description_th ILIKE ${searchTerm}
-      ORDER BY attraction_id
-    `;
+    const all = await getAttractions();
+    if (!query) return all;
+    const lower = query.toLowerCase();
+    return all.filter(item => 
+      (item.name_th && item.name_th.toLowerCase().includes(lower)) ||
+      (item.name_en && item.name_en.toLowerCase().includes(lower)) ||
+      (item.description_th && item.description_th.toLowerCase().includes(lower))
+    );
   } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการค้นหา: - attractionService.js:135', error);
+    console.error('Error searching attractions: - attractionService.js:76', error);
     return [];
   }
 };
 
-// Default Export รองรับทั้งแบบ named และ default import
-export default {
-  getAttractions,
-  getMasterData,
-  getAttractionById,
-  getFeaturedAttractions,
-  getProvinces,
-  getProvince,
-  getProvinceById,
-  getCategories,
-  getCategory,
-  getCategoryById,
-  getAttractionsByProvince,
-  getAttractionsByCategory,
-  searchAttractions,
+// 6. ดึงรายการจังหวัดทั้งหมด
+export const getProvinces = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'provinces'));
+    const provinces = [];
+    querySnapshot.forEach((doc) => {
+      provinces.push({ id: doc.id, ...doc.data() });
+    });
+    return provinces;
+  } catch (error) {
+    console.error('Error fetching provinces: - attractionService.js:91', error);
+    return [];
+  }
 };
+
+// 7. ดึงข้อมูลจังหวัดรายรายการ (ตาม ID)
+export const getProvince = async (id) => {
+  try {
+    const docRef = doc(db, 'provinces', String(id));
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching province: - attractionService.js:106', error);
+    return null;
+  }
+};
+export const getProvinceById = getProvince;
+
+// 8. ดึงรายการหมวดหมู่ทั้งหมด
+export const getCategories = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'categories'));
+    const categories = [];
+    querySnapshot.forEach((doc) => {
+      categories.push({ id: doc.id, ...doc.data() });
+    });
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories: - attractionService.js:122', error);
+    return [];
+  }
+};
+
+// 9. ดึงข้อมูลหมวดหมู่รายรายการ (ตาม ID)
+export const getCategory = async (id) => {
+  try {
+    const docRef = doc(db, 'categories', String(id));
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching category: - attractionService.js:137', error);
+    return null;
+  }
+};
+export const getCategoryById = getCategory;

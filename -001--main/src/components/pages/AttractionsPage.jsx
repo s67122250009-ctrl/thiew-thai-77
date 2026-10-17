@@ -1,104 +1,87 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import useLanguage from "../../context/LanguageContext";
-import { 
-  getAttractions, 
-  getAttractionsByProvince, 
-  getAttractionsByCategory 
-} from "../../services/attractionService";
-import FavoriteButton from "../features/FavoriteButton";
+import { useSearchParams } from "react-router-dom";
+import AttractionCard from "../common/AttractionCard";
 import EmptyState from "../common/EmptyState";
-import "../styles/AttractionsPage.css";
+import useLanguage from "../../context/LanguageContext";
+import {
+  getAttractions,
+  getAttractionsByCategory,
+  getAttractionsByProvince,
+} from "../../services/attractionService";
 
 export default function AttractionsPage() {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
-  const { language, t } = useLanguage();
-
-  // ดึงค่า province_id หรือ province จาก URL
-  const provinceId = searchParams.get("province_id") || searchParams.get("province");
-  const categoryId = searchParams.get("category_id") || searchParams.get("category");
+  const provinceId = searchParams.get("province_id");
+  const categoryId = searchParams.get("category_id");
 
   const [attractions, setAttractions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        let data = [];
-        if (provinceId) {
-          // ดึงเฉพาะสถานที่ในจังหวัดที่เลือกจาก Neon
-          data = await getAttractionsByProvince(provinceId);
-        } else if (categoryId) {
-          // ดึงเฉพาะสถานที่ในหมวดหมู่ที่เลือก
-          data = await getAttractionsByCategory(categoryId);
-        } else {
-          // ดึงสถานที่ท่องเที่ยวทั้งหมด
-          data = await getAttractions();
-        }
-        setAttractions(data || []);
-      } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
-        setAttractions([]);
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    let fetchPromise;
+
+    if (provinceId) {
+      fetchPromise = getAttractionsByProvince(provinceId);
+    } else if (categoryId) {
+      fetchPromise = getAttractionsByCategory(categoryId);
+    } else {
+      fetchPromise = getAttractions();
     }
 
-    loadData();
+    fetchPromise
+      .then((data) => {
+        setAttractions(data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error loading attractions:", err);
+        setError(true);
+        setLoading(false);
+      });
   }, [provinceId, categoryId]);
 
-  if (loading) {
-    return (
-      <div className="container page loading-state">
-        {t("กำลังโหลดข้อมูล...", "Loading attractions...")}
-      </div>
-    );
-  }
-
   return (
-    <div className="page container attractions-page">
-      <header className="page-header">
-        <h1>{t("สถานที่ท่องเที่ยวทั้งหมด", "All Attractions")}</h1>
-        <p>
-          {t(
-            `พบสถานที่ท่องเที่ยวทั้งหมด ${attractions.length} แห่ง`,
-            `Found ${attractions.length} attractions`
-          )}
-        </p>
-      </header>
+    <div className="page container">
+      <div className="section-header" style={{ marginBottom: "1.5rem" }}>
+        <div>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: "700", color: "#0f172a" }}>
+            {t("สถานที่ท่องเที่ยวทั้งหมด", "All Attractions")}
+          </h1>
+          <p style={{ color: "#64748b", marginTop: "0.25rem" }}>
+            {t("พบสถานที่ท่องเที่ยวทั้งหมด", "Found total")} {attractions.length}{" "}
+            {t("แห่ง", "places")}
+          </p>
+        </div>
+      </div>
 
-      {attractions.length === 0 ? (
+      {loading ? (
+        <div style={{ padding: "3rem", textAlign: "center", color: "#64748b" }}>
+          {t("กำลังโหลดข้อมูล...", "Loading...")}
+        </div>
+      ) : error ? (
+        <EmptyState
+          title={t("เกิดข้อผิดพลาดในการโหลดข้อมูล", "Error loading data")}
+          message={t("กรุณาลองใหม่อีกครั้ง", "Please try again.")}
+        />
+      ) : attractions.length === 0 ? (
         <EmptyState
           title={t("ไม่พบสถานที่ท่องเที่ยว", "No attractions found")}
-          message={t(
-            "ไม่พบข้อมูลสถานที่ท่องเที่ยวตรงตามเงื่อนไขที่เลือก",
-            "No attractions matched your filter criteria."
-          )}
+          message={t("ยังไม่มีสถานที่ท่องเที่ยวในหมวดหมู่นี้", "No items available in this section.")}
         />
       ) : (
-        <div className="attraction-grid">
+        /* กล่อง Grid สำหรับจัดวางการ์ดให้ขนานเป็นตาราง 3-4 คอลัมน์ */
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
           {attractions.map((item) => (
-            <div key={item.attraction_id} className="attraction-card">
-              <div className="card-image-placeholder">
-                {t("ยังไม่มีรูปภาพ", "Image coming soon")}
-              </div>
-              <div className="card-content">
-                <h3>{item[language === "en" ? "name_en" : "name_th"]}</h3>
-                <p className="card-description">
-                  {item[language === "en" ? "description_en" : "description_th"]}
-                </p>
-                <div className="card-actions">
-                  <Link
-                    to={`/attractions/${item.attraction_id}`}
-                    className="btn primary"
-                  >
-                    {t("ดูรายละเอียด", "View Details")}
-                  </Link>
-                  <FavoriteButton attractionId={item.attraction_id} />
-                </div>
-              </div>
-            </div>
+            <AttractionCard key={item.attraction_id || item.id} attraction={item} />
           ))}
         </div>
       )}

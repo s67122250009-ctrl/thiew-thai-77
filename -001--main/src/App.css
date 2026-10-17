@@ -1,13 +1,245 @@
-*{box-sizing:border-box} :root{font-family:Tahoma,"Noto Sans Thai",Arial,sans-serif;color:#1f2937;background:#f7f8fa}
-body{margin:0} a{text-decoration:none;color:inherit} button,input,select{font:inherit}
-.container{width:min(1180px,calc(100% - 32px));margin:auto}.main-content{min-height:calc(100vh - 140px)}
-.page{padding:40px 0 60px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.section{margin-top:42px}.section-header{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}
-.section-header h2{margin:0;font-size:28px}.section-header p{margin:5px 0;color:#6b7280}
-.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;padding:10px 16px;cursor:pointer;background:#2563eb;color:#fff}
-.btn.secondary{background:#eef2ff;color:#3730a3}.btn.danger{background:#fee2e2;color:#b91c1c}
-.filters{display:flex;gap:10px;flex-wrap:wrap}.filters select{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:9px 12px;min-width:150px}.language-switcher{display:flex;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden}.language-switcher button{border:0;background:#fff;padding:7px 9px;cursor:pointer}.language-switcher button.active{background:#2563eb;color:#fff}.loading-state{padding:48px;text-align:center;color:#64748b}.detail-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch}.detail-actions .favorite-button,.detail-actions .btn{border:0;border-radius:10px;padding:11px 18px;min-width:max-content;white-space:nowrap;cursor:pointer;font-size:inherit}.detail-actions .favorite-button{background:#eef2ff;color:#3730a3}.detail-actions .favorite-button.active{background:#fee2e2;color:#b91c1c}.all-provinces{margin-top:20px}
-.eyebrow{margin:0 0 8px;color:#4f46e5;font-weight:800;letter-spacing:.08em;font-size:13px}
-.empty-page{padding:80px 0;text-align:center}.empty-state{padding:50px 20px;border:1px dashed #cbd5e1;border-radius:16px;text-align:center;background:#fff;color:#64748b}
-.footer{background:#111827;color:#d1d5db;padding:25px 0}
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}} @media(max-width:600px){.container{width:calc(100% - 22px)}.grid{grid-template-columns:1fr}.section-header{align-items:start;flex-direction:column}.filters{width:100%}.filters select{flex:1}.navbar-inner{flex-wrap:wrap}.detail-actions{flex-direction:column}.detail-actions .favorite-button,.detail-actions .btn{width:100%}}
+/* ==========================================
+   THEME: CREAM PASTEL (โทนสีครีมพาสเทล อบอุ่น ละมุนตา)
+   ========================================== */
+:root {
+  /* 1. สีหลักและปุ่มต่างๆ (Pastel Warm Caramel / ส้มอิฐพาสเทลละมุน) */
+  --primary: #c87d55;          /* สีปุ่มหลักและสัญลักษณ์ไฮไลต์ */
+  --primary-hover: #b36841;    /* สีเมื่อวางเมาส์ชี้ปุ่ม */
+  --primary-light: #f7ebe1;    /* สีพื้นหลังปุ่มรอง / แท็ก / แถบเลือก */
+
+  /* 2. สีพื้นหลังเว็บไซต์และกล่องการ์ด (Cream & Soft Beige) */
+  --bg-main: #fbf8f3;          /* สีพื้นหลังทั้งเว็บไซต์ (สีครีมพาสเทลนุ่มนวล) */
+  --bg-card: #ffffff;          /* สีพื้นหลังการ์ด และ Navbar */
+  --border-color: #ede5dc;     /* สีเส้นขอบการ์ดโทนเบจอ่อน */
+
+  /* 3. สีตัวหนังสือ (Warm Espresso & Taupe - ไม่ดำจัด ถนอมสายตา) */
+  --text-main: #2d241e;        /* สีหัวข้อหลัก (สีน้ำตาลเข้มอบอุ่น) */
+  --text-sub: #78685e;         /* สีคำอธิบายรายละเอียด */
+
+  /* 4. สีปุ่มรายการโปรด (Soft Rose Pastel) */
+  --fav-color: #e06d75;        /* สีหัวใจชมพูพาสเทล */
+  --fav-bg: #fde8e8;           /* สีพื้นหลังชมพูอ่อน */
+}
+
+/* นำตัวแปรสีไปใช้กับองค์ประกอบพื้นฐาน */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ปุ่มหลัก */
+.btn.primary {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+}
+.btn.primary:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+/* ปุ่มรอง */
+.btn.secondary {
+  background-color: var(--primary-light) !important;
+  color: var(--primary) !important;
+}
+
+/* ==========================================
+   GLOBAL STYLES USING VARIABLES
+   ========================================== */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+/* ปุ่มหลัก (Primary Button) */
+.btn.primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn.primary:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ปุ่มรอง (Secondary Button) */
+.btn.secondary {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn.secondary:hover {
+  background-color: #dbeafe;
+}
+
+/* ==========================================
+   1. RESET & GLOBAL STYLES (ลบสีฟ้าขีดเส้นใต้)
+   ========================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1e293b;
+  background-color: #f8fafc;
+  line-height: 1.5;
+}
+
+/* ลบสีฟ้าและเส้นใต้ขยะออกจากลิงก์ทุกจุดในแอป */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page {
+  min-height: 80vh;
+  padding-bottom: 3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.section-header p {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================
+   2. ATTRACTIONS GRID (จัดหน้าสถานที่ท่องเที่ยว)
+   ========================================== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* ==========================================
+   3. PROVINCE GRID (จัดหน้าจังหวัด และหน้าแรก)
+   ========================================== */
+.province-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.province-grid a,
+.province-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #334155;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.province-grid a:hover,
+.province-card:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+/* ==========================================
+   4. CATEGORY GRID (จัดหน้าหมวดหมู่)
+   ========================================== */
+.category-grid,
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.category-grid a,
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #1e293b;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.category-grid a:hover,
+.category-card:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+/* ==========================================
+   5. BUTTON STYLES (ปุ่มกดส่วนกลาง)
+   ========================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn.primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn.primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn.secondary {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.btn.secondary:hover {
+  background-color: #c7d2fe;
+}

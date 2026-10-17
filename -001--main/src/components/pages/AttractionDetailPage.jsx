@@ -1,128 +1,268 @@
-import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import useLanguage from "../../context/LanguageContext";
-import { getAttractionById, getCategory, getProvince } from "../../services/attractionService";
-import FavoriteButton from "../features/FavoriteButton";
-import MapView from "../features/MapView";
-import EmptyState from "../common/EmptyState";
-import "../styles/AttractionDetailPage.css";
+import * as FavoritesHook from "../../hooks/useFavorites.jsx";
+import { getAttractionById, getProvince } from "../../services/attractionService";
+
+const useFavorites = FavoritesHook.useFavorites || FavoritesHook.default;
 
 export default function AttractionDetailPage() {
   const { id } = useParams();
-  const { language, t } = useLanguage();
-  const [state, setState] = useState({
-    loading: true,
-    item: null,
-    province: null,
-    category: null,
-    error: false
-  });
+  const { t, language } = useLanguage();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const item = await getAttractionById(id);
-        if (item) {
-          // ดึงข้อมูล Province และ Category เพิ่มเติมแบบ async
-          const provinceData = await getProvince(item.province_id);
-          const categoryData = await getCategory(item.category_id);
-          
-          setState({
-            loading: false,
-            item: item,
-            province: provinceData,
-            category: categoryData,
-            error: false
-          });
-        } else {
-          setState({ loading: false, item: null, province: null, category: null, error: false });
-        }
-      } catch (err) {
-        console.error("เกิดข้อผิดพลาด:", err);
-        setState({ loading: false, item: null, province: null, category: null, error: true });
-      }
+  // ดึง Context รายการโปรดอย่างปลอดภัย
+  let favContext = {};
+  try {
+    if (typeof useFavorites === "function") {
+      favContext = useFavorites() || {};
     }
-
-    fetchData();
-  }, [id]);
-
-  if (state.loading) {
-    return <div className="container page loading-state">{t("กำลังโหลดข้อมูล...", "Loading...")}</div>;
+  } catch (e) {
+    console.warn("Favorites context warning:", e);
   }
 
-  if (!state.item) {
+  const { isFavorite, toggleFavorite } = favContext;
+
+  const [attraction, setAttraction] = useState(null);
+  const [province, setProvince] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true);
+      getAttractionById(id).then((data) => {
+        setAttraction(data);
+        if (data?.province_id || data?.provinceId) {
+          getProvince(data.province_id || data.provinceId).then(setProvince);
+        }
+        setLoading(false);
+      });
+    }
+  }, [id]);
+
+  if (loading) {
     return (
-      <section className="container empty-page">
-        <EmptyState
-          title={t("ไม่พบสถานที่ท่องเที่ยว", "Attraction not found")}
-          message={state.error ? t("ไม่สามารถโหลดข้อมูลได้", "Data could not be loaded.") : ""}
-          action={{ to: "/attractions", label: t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions") }}
-        />
-      </section>
+      <div className="container page" style={{ textAlign: "center", padding: "4rem" }}>
+        {t("กำลังโหลดข้อมูล...", "Loading...")}
+      </div>
     );
   }
 
-  const { item, province, category } = state;
+  if (!attraction) {
+    return (
+      <div className="container page" style={{ textAlign: "center", padding: "4rem" }}>
+        <h2>{t("ไม่พบสถานที่ท่องเที่ยว", "Attraction not found")}</h2>
+        <Link to="/attractions" className="btn primary" style={{ marginTop: "1rem" }}>
+          {t("กลับไปหน้าสถานที่ท่องเที่ยว", "Back to Attractions")}
+        </Link>
+      </div>
+    );
+  }
 
-  const share = async () => {
-    try {
-      await navigator.share?.({
-        title: item[language === "en" ? "name_en" : "name_th"],
-        url: window.location.href
-      }) || await navigator.clipboard?.writeText(window.location.href);
-      alert(t("คัดลอกลิงก์แล้ว", "Link copied."));
-    } catch {
-      alert(t("ไม่สามารถแชร์ลิงก์ได้", "Could not share this link."));
-    }
+  const targetId = attraction.attraction_id || attraction.id || id;
+  const fav = isFavorite ? isFavorite(targetId) : false;
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
+  const name =
+    language === "en"
+      ? attraction.name_en || attraction.name_th
+      : attraction.name_th;
+  const desc =
+    language === "en"
+      ? attraction.description_en || attraction.description_th
+      : attraction.description_th;
+  const provinceName = province
+    ? language === "en"
+      ? province.name_en || province.name_th
+      : province.name_th
+    : "";
+
   return (
-    <div className="page container detail-page">
-      <Link to="/attractions" className="back-link">
-        ← {t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions")}
-      </Link>
-      <section className="detail-hero">
-        <div className="detail-image-placeholder">{t("ยังไม่มีรูปภาพ", "Image coming soon")}</div>
-        <div className="detail-summary">
-          <span className="tag">{province?.[language === "en" ? "name_en" : "name_th"]}</span>
-          <h1>{item[language === "en" ? "name_en" : "name_th"]}</h1>
-          <p>{item[language === "en" ? "description_en" : "description_th"]}</p>
-          <div className="detail-actions">
-            <FavoriteButton attractionId={item.attraction_id} label />
-            <button className="btn secondary" onClick={share}>
-              {t("แชร์สถานที่นี้", "Share this place")}
+    <div className="container page" style={{ paddingTop: "1.5rem" }}>
+      {/* ปุ่มย้อนกลับ */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <Link
+          to="/attractions"
+          style={{
+            color: "#2563eb",
+            fontWeight: "500",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          ← {t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions")}
+        </Link>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: "2rem",
+          marginBottom: "2rem",
+        }}
+      >
+        {/* รูปภาพสถานที่ */}
+        <div
+          style={{
+            height: "360px",
+            backgroundColor: "#f1f5f9",
+            borderRadius: "16px",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#94a3b8",
+            border: "1px solid #e2e8f0",
+          }}
+        >
+          {attraction.cover_image ? (
+            <img
+              src={attraction.cover_image}
+              alt={name}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <span style={{ fontSize: "1rem" }}>
+              📷 {t("ยังไม่มีรูปภาพ", "No image available")}
+            </span>
+          )}
+        </div>
+
+        {/* ข้อมูลรายละเอียด & ปุ่มการทำรายการ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {provinceName && (
+            <span
+              style={{
+                display: "inline-block",
+                padding: "0.35rem 0.85rem",
+                backgroundColor: "#eff6ff",
+                color: "#2563eb",
+                borderRadius: "20px",
+                fontSize: "0.85rem",
+                fontWeight: "600",
+                width: "fit-content",
+              }}
+            >
+              {provinceName}
+            </span>
+          )}
+
+          <h1
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: "700",
+              color: "#0f172a",
+              margin: 0,
+              lineHeight: "1.2",
+            }}
+          >
+            {name}
+          </h1>
+
+          <p
+            style={{
+              color: "#475569",
+              lineHeight: "1.6",
+              fontSize: "1.05rem",
+              margin: 0,
+            }}
+          >
+            {desc}
+          </p>
+
+          {/* กลุ่มปุ่มรายการโปรดและแชร์ */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.75rem",
+              marginTop: "auto",
+              paddingTop: "1.5rem",
+            }}
+          >
+            {toggleFavorite && (
+              <button
+                type="button"
+                onClick={() => toggleFavorite(attraction)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.65rem 1.25rem",
+                  borderRadius: "10px",
+                  border: fav ? "1px solid #fecdd3" : "1px solid #cbd5e1",
+                  backgroundColor: fav ? "#ffe4e6" : "#ffffff",
+                  color: fav ? "#e11d48" : "#334155",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "0.95rem",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                }}
+              >
+                {fav
+                  ? `❤️ ${t("บันทึกในรายการโปรดแล้ว", "Saved to Favorites")}`
+                  : `🤍 ${t("เพิ่มรายการโปรด", "Add to Favorites")}`}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleShare}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.65rem 1.25rem",
+                borderRadius: "10px",
+                border: "none",
+                backgroundColor: "#e0e7ff",
+                color: "#3730a3",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.95rem",
+                transition: "all 0.2s ease",
+              }}
+            >
+              🔗 {copied ? t("คัดลอกลิงก์แล้ว!", "Copied!") : t("แชร์สถานที่นี้", "Share this place")}
             </button>
           </div>
         </div>
-      </section>
-      <section className="detail-content">
-        <div className="detail-section">
-          <h2>{t("ประวัติ / ความเป็นมา", "History")}</h2>
-          <p>{item[language === "en" ? "history_en" : "history_th"]}</p>
+      </div>
+
+      {/* ส่วนประวัติ / ความเป็นมาเพิ่มเติม (ถ้ามี) */}
+      {(attraction.history_th || attraction.history_en) && (
+        <div
+          style={{
+            marginTop: "2.5rem",
+            borderTop: "1px solid #e2e8f0",
+            paddingTop: "1.5rem",
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "1.35rem",
+              fontWeight: "700",
+              color: "#0f172a",
+              marginBottom: "0.75rem",
+            }}
+          >
+            {t("ประวัติ / ความเป็นมา", "History & Background")}
+          </h3>
+          <p style={{ color: "#334155", lineHeight: "1.7", fontSize: "1rem" }}>
+            {language === "en"
+              ? attraction.history_en || attraction.history_th
+              : attraction.history_th}
+          </p>
         </div>
-        <div className="detail-section">
-          <h2>{t("ข้อมูลสถานที่", "Attraction information")}</h2>
-          <dl className="info-list">
-            <div>
-              <dt>{t("จังหวัด", "Province")}</dt>
-              <dd>{province?.[language === "en" ? "name_en" : "name_th"]}</dd>
-            </div>
-            <div>
-              <dt>{t("ประเภท", "Category")}</dt>
-              <dd>{category?.[language === "en" ? "name_en" : "name_th"]}</dd>
-            </div>
-            <div>
-              <dt>Latitude</dt>
-              <dd>{item.latitude ?? t("ยังไม่มีข้อมูล", "Not available")}</dd>
-            </div>
-            <div>
-              <dt>Longitude</dt>
-              <dd>{item.longitude ?? t("ยังไม่มีข้อมูล", "Not available")}</dd>
-            </div>
-          </dl>
-        </div>
-        <MapView attraction={item} />
-      </section>
+      )}
     </div>
   );
 }
