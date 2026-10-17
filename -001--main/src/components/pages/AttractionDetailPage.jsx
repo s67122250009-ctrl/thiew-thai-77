@@ -1,266 +1,140 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import AttractionCard from "../common/AttractionCard";
 import useLanguage from "../../context/LanguageContext";
-import * as FavoritesHook from "../../hooks/useFavorites.jsx";
-import { getAttractionById, getProvince } from "../../services/attractionService";
+import useFavorites from "../../hooks/useFavorites.jsx";
 
-const useFavorites = FavoritesHook.useFavorites || FavoritesHook.default;
+export default function FavoritesPage() {
+  const { t } = useLanguage();
+  const { favorites, clearFavorites } = useFavorites();
 
-export default function AttractionDetailPage() {
-  const { id } = useParams();
-  const { t, language } = useLanguage();
-
-  // ดึง Context รายการโปรดอย่างปลอดภัย
-  let favContext = {};
-  try {
-    if (typeof useFavorites === "function") {
-      favContext = useFavorites() || {};
-    }
-  } catch (e) {
-    console.warn("Favorites context warning:", e);
-  }
-
-  const { isFavorite, toggleFavorite } = favContext;
-
-  const [attraction, setAttraction] = useState(null);
-  const [province, setProvince] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (id) {
-      setLoading(true);
-      getAttractionById(id).then((data) => {
-        setAttraction(data);
-        if (data?.province_id || data?.provinceId) {
-          getProvince(data.province_id || data.provinceId).then(setProvince);
-        }
-        setLoading(false);
-      });
-    }
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="container page" style={{ textAlign: "center", padding: "4rem" }}>
-        {t("กำลังโหลดข้อมูล...", "Loading...")}
-      </div>
-    );
-  }
-
-  if (!attraction) {
-    return (
-      <div className="container page" style={{ textAlign: "center", padding: "4rem" }}>
-        <h2>{t("ไม่พบสถานที่ท่องเที่ยว", "Attraction not found")}</h2>
-        <Link to="/attractions" className="btn primary" style={{ marginTop: "1rem" }}>
-          {t("กลับไปหน้าสถานที่ท่องเที่ยว", "Back to Attractions")}
-        </Link>
-      </div>
-    );
-  }
-
-  const targetId = attraction.attraction_id || attraction.id || id;
-  const fav = isFavorite ? isFavorite(targetId) : false;
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const name =
-    language === "en"
-      ? attraction.name_en || attraction.name_th
-      : attraction.name_th;
-  const desc =
-    language === "en"
-      ? attraction.description_en || attraction.description_th
-      : attraction.description_th;
-  const provinceName = province
-    ? language === "en"
-      ? province.name_en || province.name_th
-      : province.name_th
-    : "";
+  // กรองเฉพาะรายการที่เป็น Object สถานที่ท่องเที่ยวที่มีข้อมูลสมบูรณ์
+  const validFavorites = Array.isArray(favorites)
+    ? favorites.filter(
+        (item) => item && typeof item === "object" && (item.name_th || item.name_en)
+      )
+    : [];
 
   return (
     <div className="container page" style={{ paddingTop: "1.5rem" }}>
-      {/* ปุ่มย้อนกลับ */}
-      <div style={{ marginBottom: "1.5rem" }}>
-        <Link
-          to="/attractions"
-          style={{
-            color: "#2563eb",
-            fontWeight: "500",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.25rem",
-          }}
-        >
-          ← {t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions")}
-        </Link>
-      </div>
-
+      {/* ส่วนหัวแสดงชื่อหน้าและจำนวนรายการ */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "2rem",
-          marginBottom: "2rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginBottom: "1.5rem",
+          borderBottom: "1px solid #e2e8f0",
+          paddingBottom: "1rem",
         }}
       >
-        {/* รูปภาพสถานที่ */}
-        <div
-          style={{
-            height: "360px",
-            backgroundColor: "#f1f5f9",
-            borderRadius: "16px",
-            overflow: "hidden",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#94a3b8",
-            border: "1px solid #e2e8f0",
-          }}
-        >
-          {attraction.cover_image ? (
-            <img
-              src={attraction.cover_image}
-              alt={name}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : (
-            <span style={{ fontSize: "1rem" }}>
-              📷 {t("ยังไม่มีรูปภาพ", "No image available")}
-            </span>
-          )}
-        </div>
-
-        {/* ข้อมูลรายละเอียด & ปุ่มการทำรายการ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {provinceName && (
-            <span
-              style={{
-                display: "inline-block",
-                padding: "0.35rem 0.85rem",
-                backgroundColor: "#eff6ff",
-                color: "#2563eb",
-                borderRadius: "20px",
-                fontSize: "0.85rem",
-                fontWeight: "600",
-                width: "fit-content",
-              }}
-            >
-              {provinceName}
-            </span>
-          )}
-
+        <div>
+          <span
+            style={{
+              fontSize: "0.8rem",
+              fontWeight: "700",
+              letterSpacing: "0.05em",
+              color: "#64748b",
+              textTransform: "uppercase",
+            }}
+          >
+            FAVORITES
+          </span>
           <h1
             style={{
-              fontSize: "2.25rem",
+              fontSize: "1.85rem",
               fontWeight: "700",
               color: "#0f172a",
-              margin: 0,
-              lineHeight: "1.2",
+              margin: "0.25rem 0 0 0",
             }}
           >
-            {name}
+            {t("รายการโปรด", "My Favorites")}
           </h1>
-
-          <p
-            style={{
-              color: "#475569",
-              lineHeight: "1.6",
-              fontSize: "1.05rem",
-              margin: 0,
-            }}
-          >
-            {desc}
+          <p style={{ color: "#64748b", margin: "0.25rem 0 0 0", fontSize: "0.95rem" }}>
+            {t("บันทึกไว้", "Saved")} {validFavorites.length} {t("สถานที่", "places")}
           </p>
+        </div>
 
-          {/* กลุ่มปุ่มรายการโปรดและแชร์ */}
-          <div
+        {validFavorites.length > 0 && (
+          <button
+            type="button"
+            onClick={clearFavorites}
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.75rem",
-              marginTop: "auto",
-              paddingTop: "1.5rem",
+              padding: "0.5rem 1rem",
+              fontSize: "0.85rem",
+              color: "#ef4444",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
             }}
           >
-            {toggleFavorite && (
-              <button
-                type="button"
-                onClick={() => toggleFavorite(attraction)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.65rem 1.25rem",
-                  borderRadius: "10px",
-                  border: fav ? "1px solid #fecdd3" : "1px solid #cbd5e1",
-                  backgroundColor: fav ? "#ffe4e6" : "#ffffff",
-                  color: fav ? "#e11d48" : "#334155",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.95rem",
-                  transition: "all 0.2s ease",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                }}
-              >
-                {fav
-                  ? `❤️ ${t("บันทึกในรายการโปรดแล้ว", "Saved to Favorites")}`
-                  : `🤍 ${t("เพิ่มรายการโปรด", "Add to Favorites")}`}
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleShare}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.65rem 1.25rem",
-                borderRadius: "10px",
-                border: "none",
-                backgroundColor: "#e0e7ff",
-                color: "#3730a3",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontSize: "0.95rem",
-                transition: "all 0.2s ease",
-              }}
-            >
-              🔗 {copied ? t("คัดลอกลิงก์แล้ว!", "Copied!") : t("แชร์สถานที่นี้", "Share this place")}
-            </button>
-          </div>
-        </div>
+            🗑️ {t("ล้างรายการโปรดทั้งหมด", "Clear all")}
+          </button>
+        )}
       </div>
 
-      {/* ส่วนประวัติ / ความเป็นมาเพิ่มเติม (ถ้ามี) */}
-      {(attraction.history_th || attraction.history_en) && (
+      {/* ถ้ายังไม่มีรายการโปรด */}
+      {validFavorites.length === 0 ? (
         <div
           style={{
-            marginTop: "2.5rem",
-            borderTop: "1px solid #e2e8f0",
-            paddingTop: "1.5rem",
+            textAlign: "center",
+            padding: "3.5rem 1rem",
+            backgroundColor: "#ffffff",
+            borderRadius: "16px",
+            border: "1px solid #e2e8f0",
+            marginTop: "1rem",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
           }}
         >
+          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>❤️</div>
           <h3
             style={{
-              fontSize: "1.35rem",
+              fontSize: "1.25rem",
               fontWeight: "700",
               color: "#0f172a",
-              marginBottom: "0.75rem",
+              marginBottom: "0.5rem",
             }}
           >
-            {t("ประวัติ / ความเป็นมา", "History & Background")}
+            {t("ยังไม่มีรายการโปรด", "No favorite attractions yet")}
           </h3>
-          <p style={{ color: "#334155", lineHeight: "1.7", fontSize: "1rem" }}>
-            {language === "en"
-              ? attraction.history_en || attraction.history_th
-              : attraction.history_th}
+          <p style={{ color: "#64748b", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
+            {t(
+              "กดปุ่มหัวใจบนสถานที่ท่องเที่ยวเพื่อบันทึกไว้ที่นี่",
+              "Click the heart icon on any attraction to save it here"
+            )}
           </p>
+          <Link
+            to="/attractions"
+            style={{
+              display: "inline-block",
+              padding: "0.65rem 1.35rem",
+              backgroundColor: "#2563eb",
+              color: "#ffffff",
+              borderRadius: "10px",
+              fontWeight: "600",
+              fontSize: "0.9rem",
+              textDecoration: "none",
+            }}
+          >
+            {t("สำรวจสถานที่ท่องเที่ยว", "Explore Attractions")} →
+          </Link>
+        </div>
+      ) : (
+        /* แสดงรายการโปรดเป็นตาราง Grid การ์ด */
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {validFavorites.map((item) => (
+            <AttractionCard
+              key={item.attraction_id || item.id || Math.random()}
+              attraction={item}
+            />
+          ))}
         </div>
       )}
     </div>

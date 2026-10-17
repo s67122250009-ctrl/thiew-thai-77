@@ -2,9 +2,9 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const FavoritesContext = createContext();
 
-// ฟังก์ชันดึง ID จาก Object หรือ String/Number อย่างปลอดภัย
+// ดึง ID ของสถานที่อย่างปลอดภัย (รองรับทั้ง attraction_id และ id)
 const getItemId = (item) => {
-  if (!item) return null;
+  if (!item) return "";
   if (typeof item === "object") {
     return String(item.attraction_id || item.id || "");
   }
@@ -12,18 +12,18 @@ const getItemId = (item) => {
 };
 
 export function FavoritesProvider({ children }) {
-  // โหลดข้อมูลรายการโปรดจาก LocalStorage
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem("thiew_thai_favorites");
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       console.error("Failed to load favorites:", e);
       return [];
     }
   });
 
-  // บันทึกลง LocalStorage ทุกครั้งที่รายการโปรดเปลี่ยน
   useEffect(() => {
     try {
       localStorage.setItem("thiew_thai_favorites", JSON.stringify(favorites));
@@ -32,14 +32,14 @@ export function FavoritesProvider({ children }) {
     }
   }, [favorites]);
 
-  // ตรวจสอบว่าถูกใจรายการนี้หรือยัง
+  // ตรวจสอบว่ามีในรายการโปรดหรือยัง
   const isFavorite = (itemOrId) => {
     const targetId = getItemId(itemOrId);
     if (!targetId) return false;
     return favorites.some((fav) => getItemId(fav) === targetId);
   };
 
-  // สลับสถานะ เพิ่ม / ลบ รายการโปรด
+  // สลับสถานะเพิ่ม / ลบ
   const toggleFavorite = (attraction) => {
     if (!attraction) return;
     const targetId = getItemId(attraction);
@@ -50,13 +50,25 @@ export function FavoritesProvider({ children }) {
       if (exists) {
         return prevFavs.filter((fav) => getItemId(fav) !== targetId);
       } else {
-        return [...prevFavs, attraction];
+        // บันทึก Object สถานที่ทั้งชุดไว้เพื่อให้นำไปแสดงการ์ดได้ทันที
+        const itemToSave =
+          typeof attraction === "object"
+            ? attraction
+            : { id: targetId, attraction_id: targetId };
+        return [...prevFavs, itemToSave];
       }
     });
   };
 
+  // ฟังก์ชันล้างรายการโปรดทั้งหมด
+  const clearFavorites = () => {
+    setFavorites([]);
+  };
+
   return (
-    <FavoritesContext.Provider value={{ favorites, isFavorite, toggleFavorite }}>
+    <FavoritesContext.Provider
+      value={{ favorites, isFavorite, toggleFavorite, clearFavorites }}
+    >
       {children}
     </FavoritesContext.Provider>
   );
@@ -65,7 +77,12 @@ export function FavoritesProvider({ children }) {
 export function useFavorites() {
   const context = useContext(FavoritesContext);
   if (!context) {
-    return { favorites: [], isFavorite: () => false, toggleFavorite: () => {} };
+    return {
+      favorites: [],
+      isFavorite: () => false,
+      toggleFavorite: () => {},
+      clearFavorites: () => {},
+    };
   }
   return context;
 }
