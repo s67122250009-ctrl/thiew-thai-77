@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AttractionCard from "../common/AttractionCard";
 import EmptyState from "../common/EmptyState";
 import useLanguage from "../../context/LanguageContext";
@@ -11,75 +11,68 @@ import {
 
 export default function AttractionsPage() {
   const { t } = useLanguage();
-  const [searchParams] = useSearchParams();
-  const provinceId = searchParams.get("province_id");
-  const categoryId = searchParams.get("category_id");
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const provinceId = params.get("province_id") || "";
+  const categoryId = params.get("category_id") || "";
 
-  const [attractions, setAttractions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [state, setState] = useState({ loading: true, items: [], error: false });
 
   useEffect(() => {
-    setLoading(true);
-    let fetchPromise;
+    let active = true;
+    setState((s) => ({ ...s, loading: true }));
 
-    if (provinceId) {
-      fetchPromise = getAttractionsByProvince(provinceId);
-    } else if (categoryId) {
-      fetchPromise = getAttractionsByCategory(categoryId);
-    } else {
-      fetchPromise = getAttractions();
-    }
+    const request = provinceId
+      ? getAttractionsByProvince(provinceId)
+      : categoryId
+      ? getAttractionsByCategory(categoryId)
+      : getAttractions();
 
-    fetchPromise
-      .then((data) => {
-        setAttractions(data || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error loading attractions:", err);
-        setError(true);
-        setLoading(false);
-      });
+    request
+      .then((items) => active && setState({ loading: false, items, error: false }))
+      .catch(() => active && setState({ loading: false, items: [], error: true }));
+
+    return () => {
+      active = false;
+    };
   }, [provinceId, categoryId]);
 
   return (
-    <div className="page container listing-page">
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">ATTRACTIONS</p>
-          <h1>
-            {t("สถานที่ท่องเที่ยวทั้งหมด", "All Attractions")}
-          </h1>
-          <p>
-            {t("พบสถานที่ท่องเที่ยวทั้งหมด", "Found total")} {attractions.length}{" "}
-            {t("แห่ง", "places")}
-          </p>
-        </div>
-      </div>
+    <main className="page-with-nav">
+      <button type="button" className="back-btn" onClick={() => navigate(-1)}>
+        ← {t("ย้อนกลับ", "Back")}
+      </button>
 
-      {loading ? (
-        <div className="loading-state">
-          {t("กำลังโหลดข้อมูล...", "Loading...")}
-        </div>
-      ) : error ? (
+      <header className="page-heading">
+        <p className="eyebrow">ATTRACTIONS</p>
+        <h1>{t("สถานที่ท่องเที่ยวทั้งหมด", "All attractions")}</h1>
+        {!state.loading && !state.error && (
+          <p className="page-sub">
+            {t(`พบสถานที่ท่องเที่ยว ${state.items.length} แห่ง`, `Found ${state.items.length} places`)}
+          </p>
+        )}
+      </header>
+
+      {state.loading ? (
+        <p className="state-text">{t("กำลังโหลดข้อมูล...", "Loading...")}</p>
+      ) : state.error ? (
         <EmptyState
-          title={t("เกิดข้อผิดพลาดในการโหลดข้อมูล", "Error loading data")}
-          message={t("กรุณาลองใหม่อีกครั้ง", "Please try again.")}
+          title={t("โหลดข้อมูลไม่ได้", "Could not load data")}
+          message=""
         />
-      ) : attractions.length === 0 ? (
+      ) : state.items.length === 0 ? (
         <EmptyState
-          title={t("ไม่พบสถานที่ท่องเที่ยว", "No attractions found")}
-          message={t("ยังไม่มีสถานที่ท่องเที่ยวในหมวดหมู่นี้", "No items available in this section.")}
+          title={t("ไม่พบสถานที่", "No attractions found")}
+          message={t("ลองเลือกจังหวัดหรือหมวดหมู่อื่น", "Try another province or category.")}
+          action={{ to: "/attractions", label: t("ดูทั้งหมด", "View all") }}
         />
       ) : (
-        /* กล่อง Grid สำหรับจัดวางการ์ดให้ขนานเป็นตาราง 3-4 คอลัมน์ */
         <div className="grid">
-          {attractions.map((item) => (
-            <AttractionCard key={item.attraction_id || item.id} attraction={item} />
+          {state.items.map((item) => (
+            <AttractionCard key={item.attraction_id} attraction={item} />
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

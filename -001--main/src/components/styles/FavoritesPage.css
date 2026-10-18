@@ -1,0 +1,116 @@
+.fav-page {
+  padding-top: 6.5rem;
+  padding-bottom: 3rem;
+}
+
+.fav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.fav-header .eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: #ec4899;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.fav-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.fav-header .page-sub {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.fav-clear-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+
+.fav-clear-btn:hover {
+  background: #e11d48;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.fav-clear-btn:active {
+  transform: scale(0.97);
+}
+
+.fav-empty {
+  text-align: center;
+  padding: 4rem 1.5rem;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.fav-empty__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fce7f3, #ede9fe);
+  color: #db2777;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  animation: fav-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes fav-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.fav-empty h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.fav-empty p {
+  color: #64748b;
+  font-size: 0.95rem;
+  max-width: 360px;
+}
+
+.fav-empty__cta {
+  margin-top: 0.75rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.fav-empty__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(124, 58, 237, 0.3);
+}

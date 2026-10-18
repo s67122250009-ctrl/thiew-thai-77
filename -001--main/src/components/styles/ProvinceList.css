@@ -1,0 +1,133 @@
+.province-page {
+  padding: 3rem 1.5rem 4rem;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.page-heading .eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: #2563eb;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.page-heading h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.page-sub {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 1.75rem;
+}
+
+.province-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.province-toolbar input {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  background: #ffffff;
+}
+
+.province-toolbar input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.province-count {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.province-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.province-tile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  color: #0f172a;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.province-tile:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.province-tile__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.province-tile__count {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.state-text {
+  text-align: center;
+  color: #64748b;
+  padding: 3rem 0;
+}
+/* ---------- ระยะห่างจาก Navbar ---------- */
+.province-page {
+  padding-top: 6.5rem;
+  padding-bottom: 3rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  box-sizing: border-box;
+}
+
+.province-heading {
+  margin-bottom: 1.75rem;
+}
+
+.province-heading .eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: #2563eb;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.province-heading h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+}
+
+.province-heading .page-sub {
+  color: #64748b;
+  font-size: 0.95rem;
+}

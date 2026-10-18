@@ -1,1 +1,29 @@
-.search-heading{margin-bottom:28px}.search-heading h1{margin:0 0 20px;font-size:36px}.search-heading>p:last-child{color:#64748b}
+.search-page {
+  padding-top: 6.5rem;
+  padding-bottom: 3rem;
+}
+
+.search-heading {
+  margin-bottom: 2rem;
+}
+
+.search-heading .eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: #2563eb;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.search-heading h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 1.25rem;
+}
+
+.search-summary {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}

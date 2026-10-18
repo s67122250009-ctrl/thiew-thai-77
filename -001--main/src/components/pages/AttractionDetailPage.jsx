@@ -1,35 +1,95 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import EmptyState from "../common/EmptyState";
-import FavoriteButton from "../features/FavoriteButton";
-import MapView from "../features/MapView";
+import { useParams, useNavigate } from "react-router-dom";
 import useLanguage from "../../context/LanguageContext";
 import { getAttractionById } from "../../services/attractionService";
-import { getImagePaths, nextImageSource } from "../../utils/imagePaths";
+import "../styles/DetailPage.css";
 
+const PLACEHOLDER = `${import.meta.env.BASE_URL}images/placeholder.jpg`;
+
+function handleImgError(e) {
+  const img = e.currentTarget;
+  if (!img.dataset.step && img.src.endsWith(".jpg")) {
+    img.dataset.step = "1";
+    img.src = img.src.replace(/\.jpg$/, ".jpeg");
+    return;
+  }
+  img.onerror = null;
+  img.src = PLACEHOLDER;
+}
 export default function AttractionDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { language, t } = useLanguage();
-  const [state, setState] = useState({ loading: true, item: null });
+  const [attraction, setAttraction] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    setState({ loading: true, item: null });
-    getAttractionById(id).then((item) => { if (active) setState({ loading: false, item }); });
-    return () => { active = false; };
+    setLoading(true);
+    getAttractionById(id)
+      .then((data) => active && setAttraction(data))
+      .catch((err) => console.error("โหลดรายละเอียดไม่สำเร็จ", err))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
   }, [id]);
 
-  if (state.loading) return <div className="container page loading-state">{t("กำลังโหลดข้อมูล...", "Loading...")}</div>;
-  if (!state.item) return <section className="container empty-page"><EmptyState title={t("ไม่พบสถานที่ท่องเที่ยว", "Attraction not found")} message="" action={{ to: "/attractions", label: t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions") }} /></section>;
+  if (loading) {
+    return <div className="detail-page"><p>{t("กำลังโหลดข้อมูล...", "Loading...")}</p></div>;
+  }
 
-  const item = state.item;
-  const attractionId = String(item.attraction_id || item.id || id);
-  const imageSources = getImagePaths(item, "image_detail");
-  const value = (th, en, legacy) => language === "en" ? (item[en] || item[th] || item[legacy] || "-") : (item[th] || item[legacy] || "-");
+  if (!attraction) {
+    return (
+      <div className="detail-page">
+        <p>{t("ไม่พบสถานที่ท่องเที่ยวนี้", "Attraction not found")}</p>
+      </div>
+    );
+  }
 
-  return <div className="container page detail-page">
-    <Link to="/attractions" className="back-link">← {t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions")}</Link>
-    <section className="detail-hero"><div className="detail-image-placeholder">{imageSources.length>0&&<img className="detail-image" src={imageSources[0]} alt={value("name_th","name_en")} data-source-index="0" onError={nextImageSource(imageSources)} />}<span className="detail-image-label" style={{display:imageSources.length?"none":"inline-flex"}}>{t("ยังไม่มีรูปภาพ", "No image available")}</span></div><div className="detail-summary"><p className="eyebrow">{value("province_th", "province_en", "province")}</p><h1>{value("name_th", "name_en")}</h1><p>{value("description_th", "description_en", "description")}</p><FavoriteButton attractionId={attractionId} label /></div></section>
-    <section className="detail-content"><div className="detail-section"><h2>{t("ข้อมูลสถานที่", "Attraction information")}</h2><dl className="info-list"><div><dt>{t("จังหวัด", "Province")}</dt><dd>{value("province_th", "province_en", "province")}</dd></div><div><dt>{t("หมวดหมู่", "Category")}</dt><dd>{value("category_th", "category_en", "category")}</dd></div></dl></div><div className="detail-section"><h2>{t("คำอธิบาย", "Description")}</h2><p>{value("description_th", "description_en", "description")}</p></div><div className="detail-section"><h2>{t("ประวัติ / ความเป็นมา", "History")}</h2><p>{value("history_th", "history_en", "history")}</p></div><MapView attraction={item} /></section>
-  </div>;
+  const isEn = language === "en";
+  const name = (isEn && attraction.name_en) || attraction.name_th;
+  const province = (isEn && attraction.province_en) || attraction.province_th;
+  const category = (isEn && attraction.category_en) || attraction.category_th;
+  const desc = (isEn && attraction.description_en) || attraction.description_th;
+  const history = (isEn && attraction.history_en) || attraction.history_th;
+
+  return (
+    <main className="detail-page">
+      <button type="button" className="detail-back-btn" onClick={() => navigate(-1)}>
+        ← {t("ย้อนกลับ", "Back")}
+      </button>
+
+      <article className="detail-card">
+        <img
+          className="detail-hero-img"
+          src={attraction.image_detail}
+          alt={name}
+          onError={handleImgError}
+        />
+
+        <div className="detail-body">
+          <h1 className="detail-title">{name}</h1>
+          <div className="detail-meta">
+            {province && <span>📍 {province}</span>}
+            {category && <span>🏷 {category}</span>}
+          </div>
+
+          {desc && (
+            <section className="detail-section">
+              <h2>{t("รายละเอียด", "Description")}</h2>
+              <p>{desc}</p>
+            </section>
+          )}
+
+          {history && (
+            <section className="detail-section">
+              <h2>{t("ประวัติความเป็นมา", "History")}</h2>
+              <p>{history}</p>
+            </section>
+          )}
+        </div>
+      </article>
+    </main>
+  );
 }
