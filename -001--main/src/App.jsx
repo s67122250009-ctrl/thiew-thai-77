@@ -10,6 +10,7 @@ import FavoritesPage from "./components/pages/FavoritesPage";
 import SearchPage from "./components/pages/SearchPage";
 import ProvinceListPage from "./components/pages/ProvinceListPage";
 import CategoryListPage from "./components/pages/CategoryListPage";
+import "./components/styles/SitePages.css";
 
 function Application() {
   const { t } = useLanguage();
@@ -36,7 +37,7 @@ function Application() {
             />
           </Routes>
         </main>
-        <footer className="footer">
+        <footer className="footer site-footer">
           <div className="container">{t("เที่ยวไทย 77", "Thiew Thai 77")} © 2026</div>
         </footer>
       </div>

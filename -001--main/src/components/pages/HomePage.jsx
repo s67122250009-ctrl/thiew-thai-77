@@ -5,6 +5,7 @@ import AttractionCard from "../common/AttractionCard";
 import EmptyState from "../common/EmptyState";
 import useLanguage from "../../context/LanguageContext";
 import { getAttractions, getProvinces } from "../../services/attractionService";
+import { getImagePaths, nextImageSource } from "../../utils/imagePaths";
 import "../styles/HomePage.css";
 
 export default function HomePage() {
@@ -30,12 +31,16 @@ export default function HomePage() {
   const featured = state.items.filter(
     (x) => x.is_featured === true || x.is_featured === "true"
   );
+  const heroItem = featured[0];
+  const heroImageSources = heroItem ? getImagePaths(heroItem, "image_detail") : [];
 
   return (
-    <div className="page">
+    <div className="page home-page">
       {/* Hero Section */}
-      <section className="hero container">
-        <div className="hero-content">
+      <section className="hero">
+        {heroImageSources.length > 0 && <img className="hero-media" src={heroImageSources[0]} alt="" data-source-index="0" onError={nextImageSource(heroImageSources)} />}
+        <div className="hero-overlay" />
+        <div className="hero-content container">
           <p className="eyebrow">THAI 77 PROVINCES</p>
           <h1>
             {t(
@@ -50,6 +55,12 @@ export default function HomePage() {
             )}
           </p>
           <SearchBar />
+          <p className="hero-note">
+            {t(
+              "เริ่มต้นการเดินทางด้วยการค้นหาสถานที่หรือเลือกดูจังหวัด",
+              "Start your journey by searching for a place or browsing a province."
+            )}
+          </p>
         </div>
       </section>
 
@@ -80,7 +91,7 @@ export default function HomePage() {
             message={t("กรุณาลองใหม่อีกครั้ง", "Please try again.")}
           />
         ) : featured.length ? (
-          <div className="grid">
+          <div className="grid home-featured-grid">
             {featured.map((item) => (
               <AttractionCard
                 key={item.attraction_id || item.id}
@@ -113,7 +124,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="province-grid">
+        <div className="province-grid home-province-grid">
           {state.provinces.slice(0, 12).map((p) => {
             const provinceId = p.province_id || p.id;
             return (

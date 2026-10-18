@@ -1,142 +1,35 @@
-import { Link } from "react-router-dom";
-import AttractionCard from "../common/AttractionCard";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import EmptyState from "../common/EmptyState";
+import FavoriteButton from "../features/FavoriteButton";
+import MapView from "../features/MapView";
 import useLanguage from "../../context/LanguageContext";
-import useFavorites from "../../hooks/useFavorites.jsx";
+import { getAttractionById } from "../../services/attractionService";
+import { getImagePaths, nextImageSource } from "../../utils/imagePaths";
 
-export default function FavoritesPage() {
-  const { t } = useLanguage();
-  const { favorites, clearFavorites } = useFavorites();
+export default function AttractionDetailPage() {
+  const { id } = useParams();
+  const { language, t } = useLanguage();
+  const [state, setState] = useState({ loading: true, item: null });
 
-  // กรองเฉพาะรายการที่เป็น Object สถานที่ท่องเที่ยวที่มีข้อมูลสมบูรณ์
-  const validFavorites = Array.isArray(favorites)
-    ? favorites.filter(
-        (item) => item && typeof item === "object" && (item.name_th || item.name_en)
-      )
-    : [];
+  useEffect(() => {
+    let active = true;
+    setState({ loading: true, item: null });
+    getAttractionById(id).then((item) => { if (active) setState({ loading: false, item }); });
+    return () => { active = false; };
+  }, [id]);
 
-  return (
-    <div className="container page" style={{ paddingTop: "1.5rem" }}>
-      {/* ส่วนหัวแสดงชื่อหน้าและจำนวนรายการ */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: "1.5rem",
-          borderBottom: "1px solid #e2e8f0",
-          paddingBottom: "1rem",
-        }}
-      >
-        <div>
-          <span
-            style={{
-              fontSize: "0.8rem",
-              fontWeight: "700",
-              letterSpacing: "0.05em",
-              color: "#64748b",
-              textTransform: "uppercase",
-            }}
-          >
-            FAVORITES
-          </span>
-          <h1
-            style={{
-              fontSize: "1.85rem",
-              fontWeight: "700",
-              color: "#0f172a",
-              margin: "0.25rem 0 0 0",
-            }}
-          >
-            {t("รายการโปรด", "My Favorites")}
-          </h1>
-          <p style={{ color: "#64748b", margin: "0.25rem 0 0 0", fontSize: "0.95rem" }}>
-            {t("บันทึกไว้", "Saved")} {validFavorites.length} {t("สถานที่", "places")}
-          </p>
-        </div>
+  if (state.loading) return <div className="container page loading-state">{t("กำลังโหลดข้อมูล...", "Loading...")}</div>;
+  if (!state.item) return <section className="container empty-page"><EmptyState title={t("ไม่พบสถานที่ท่องเที่ยว", "Attraction not found")} message="" action={{ to: "/attractions", label: t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions") }} /></section>;
 
-        {validFavorites.length > 0 && (
-          <button
-            type="button"
-            onClick={clearFavorites}
-            style={{
-              padding: "0.5rem 1rem",
-              fontSize: "0.85rem",
-              color: "#ef4444",
-              backgroundColor: "#fef2f2",
-              border: "1px solid #fecaca",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "600",
-            }}
-          >
-            🗑️ {t("ล้างรายการโปรดทั้งหมด", "Clear all")}
-          </button>
-        )}
-      </div>
+  const item = state.item;
+  const attractionId = String(item.attraction_id || item.id || id);
+  const imageSources = getImagePaths(item, "image_detail");
+  const value = (th, en, legacy) => language === "en" ? (item[en] || item[th] || item[legacy] || "-") : (item[th] || item[legacy] || "-");
 
-      {/* ถ้ายังไม่มีรายการโปรด */}
-      {validFavorites.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "3.5rem 1rem",
-            backgroundColor: "#ffffff",
-            borderRadius: "16px",
-            border: "1px solid #e2e8f0",
-            marginTop: "1rem",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-          }}
-        >
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>❤️</div>
-          <h3
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: "700",
-              color: "#0f172a",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {t("ยังไม่มีรายการโปรด", "No favorite attractions yet")}
-          </h3>
-          <p style={{ color: "#64748b", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
-            {t(
-              "กดปุ่มหัวใจบนสถานที่ท่องเที่ยวเพื่อบันทึกไว้ที่นี่",
-              "Click the heart icon on any attraction to save it here"
-            )}
-          </p>
-          <Link
-            to="/attractions"
-            style={{
-              display: "inline-block",
-              padding: "0.65rem 1.35rem",
-              backgroundColor: "#2563eb",
-              color: "#ffffff",
-              borderRadius: "10px",
-              fontWeight: "600",
-              fontSize: "0.9rem",
-              textDecoration: "none",
-            }}
-          >
-            {t("สำรวจสถานที่ท่องเที่ยว", "Explore Attractions")} →
-          </Link>
-        </div>
-      ) : (
-        /* แสดงรายการโปรดเป็นตาราง Grid การ์ด */
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
-          {validFavorites.map((item) => (
-            <AttractionCard
-              key={item.attraction_id || item.id || Math.random()}
-              attraction={item}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <div className="container page detail-page">
+    <Link to="/attractions" className="back-link">← {t("กลับไปสถานที่ท่องเที่ยว", "Back to attractions")}</Link>
+    <section className="detail-hero"><div className="detail-image-placeholder">{imageSources.length>0&&<img className="detail-image" src={imageSources[0]} alt={value("name_th","name_en")} data-source-index="0" onError={nextImageSource(imageSources)} />}<span className="detail-image-label" style={{display:imageSources.length?"none":"inline-flex"}}>{t("ยังไม่มีรูปภาพ", "No image available")}</span></div><div className="detail-summary"><p className="eyebrow">{value("province_th", "province_en", "province")}</p><h1>{value("name_th", "name_en")}</h1><p>{value("description_th", "description_en", "description")}</p><FavoriteButton attractionId={attractionId} label /></div></section>
+    <section className="detail-content"><div className="detail-section"><h2>{t("ข้อมูลสถานที่", "Attraction information")}</h2><dl className="info-list"><div><dt>{t("จังหวัด", "Province")}</dt><dd>{value("province_th", "province_en", "province")}</dd></div><div><dt>{t("หมวดหมู่", "Category")}</dt><dd>{value("category_th", "category_en", "category")}</dd></div></dl></div><div className="detail-section"><h2>{t("คำอธิบาย", "Description")}</h2><p>{value("description_th", "description_en", "description")}</p></div><div className="detail-section"><h2>{t("ประวัติ / ความเป็นมา", "History")}</h2><p>{value("history_th", "history_en", "history")}</p></div><MapView attraction={item} /></section>
+  </div>;
 }

@@ -44,13 +44,14 @@ export default function AttractionsPage() {
   }, [provinceId, categoryId]);
 
   return (
-    <div className="page container">
-      <div className="section-header" style={{ marginBottom: "1.5rem" }}>
+    <div className="page container listing-page">
+      <div className="page-heading">
         <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: "700", color: "#0f172a" }}>
+          <p className="eyebrow">ATTRACTIONS</p>
+          <h1>
             {t("สถานที่ท่องเที่ยวทั้งหมด", "All Attractions")}
           </h1>
-          <p style={{ color: "#64748b", marginTop: "0.25rem" }}>
+          <p>
             {t("พบสถานที่ท่องเที่ยวทั้งหมด", "Found total")} {attractions.length}{" "}
             {t("แห่ง", "places")}
           </p>
@@ -58,7 +59,7 @@ export default function AttractionsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "#64748b" }}>
+        <div className="loading-state">
           {t("กำลังโหลดข้อมูล...", "Loading...")}
         </div>
       ) : error ? (
@@ -73,13 +74,7 @@ export default function AttractionsPage() {
         />
       ) : (
         /* กล่อง Grid สำหรับจัดวางการ์ดให้ขนานเป็นตาราง 3-4 คอลัมน์ */
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
+        <div className="grid">
           {attractions.map((item) => (
             <AttractionCard key={item.attraction_id || item.id} attraction={item} />
           ))}
