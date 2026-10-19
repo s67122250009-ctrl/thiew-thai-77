@@ -8,3 +8,4 @@ serviceAccountKey*.json
 .env
 node_modules/
 dist/
+_unused/
