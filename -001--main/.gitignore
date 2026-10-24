@@ -9,3 +9,7 @@ serviceAccountKey*.json
 node_modules/
 dist/
 _unused/
+
+.env
+serviceAccountKey*.json
+_unused/

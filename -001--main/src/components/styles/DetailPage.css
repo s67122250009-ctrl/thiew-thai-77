@@ -133,3 +133,44 @@
   padding-right: 1.5rem;
   box-sizing: border-box;
 }
+/* ---------- ปุ่มรายการโปรดในหน้ารายละเอียด (ทุกขนาดจอ) ---------- */
+.detail-page .detail-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: 9999px;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  outline: none;
+  box-shadow: none;
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.detail-page .detail-fav-btn:hover {
+  transform: translateY(-1px);
+  background: #ffe4e6;
+  border-color: #fda4af;
+}
+
+.detail-page .detail-fav-btn:focus-visible {
+  outline: 2px solid #e11d48;
+  outline-offset: 2px;
+}
+
+.detail-page .detail-fav-btn.is-active {
+  background: #e11d48;
+  color: #ffffff;
+  border-color: #e11d48;
+}
+
+.detail-page .detail-fav-btn.is-active:hover {
+  background: #be123c;
+  border-color: #be123c;
+}

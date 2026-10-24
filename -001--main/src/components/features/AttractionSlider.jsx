@@ -29,8 +29,18 @@ export default function AttractionSlider({ items = [], loading = false }) {
 
   return (
     <section className="section-container">
-      <div className="section-header">
-        <div>
+      <div
+        className="section-header"
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "nowrap",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "1rem",
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h2 className="section-title">
             {t("สถานที่แนะนำ", "Featured attractions")}
           </h2>
@@ -38,7 +48,17 @@ export default function AttractionSlider({ items = [], loading = false }) {
             {t("สถานที่ท่องเที่ยวยอดนิยมที่ไม่ควรพลาด", "Popular places you shouldn't miss")}
           </p>
         </div>
-        <div className="slider-controls">
+
+        <div
+          className="slider-controls"
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "nowrap",
+            gap: "0.5rem",
+            flexShrink: 0,
+          }}
+        >
           <button type="button" className="arrow-btn" onClick={() => scrollBy(-1)} aria-label="Previous">
             ‹
           </button>

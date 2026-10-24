@@ -243,15 +243,6 @@ body {
   margin-top: 0.25rem;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.75rem;
-}
-
 /* ---------- ปุ่ม ---------- */
 button {
   font-family: inherit;
@@ -844,8 +835,6 @@ footer a {
   .category-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
 @media (max-width: 560px) {
   .province-grid,
   .grid {
@@ -860,4 +849,78 @@ footer a {
   .hero-title {
     font-size: 1.9rem;
   }
+}
+
+/* ---------- ปุ่มเลื่อนสถานที่แนะนำ: แถวเดียวกับหัวข้อทุกขนาดจอ ---------- */
+.section-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1.75rem;
+}
+
+.section-header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.slider-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+/* ---------- ปุ่มเลื่อนสถานที่แนะนำ: แถวเดียวกับหัวข้อทุกขนาดจอ ---------- */
+.section-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1.75rem;
+}
+
+.section-header > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.slider-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+/* ---------- ปุ่มรายการโปรดในหน้ารายละเอียด ---------- */
+.detail-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.detail-fav-btn:hover {
+  transform: translateY(-1px);
+  background: #ffe4e6;
+}
+
+.detail-fav-btn.is-active {
+  background: #e11d48;
+  color: #ffffff;
+  border-color: #e11d48;
+}
 }
